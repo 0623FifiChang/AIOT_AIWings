@@ -76,10 +76,11 @@ export default {
         [key: string]: any;
       };
 
+      console.log("------- select_user -----");
       //Promise
       const select_user = async function () {
         return new Promise(function (resolve, reject) {
-          console.log("uuid: ", res.locals.uuid);
+          console.log("------- uuid ------\nres.locals.uuid = ", res.locals.uuid);
           //fixed me
           let sql =
             "SELECT email,drone_id, isAdmin FROM drones LEFT JOIN user ON user.id=drones.user_id WHERE user.id=UUID_TO_BIN(?);SELECT email FROM user  WHERE user.id=UUID_TO_BIN(?);";
@@ -90,9 +91,17 @@ export default {
               reject(err);
               return;
             }
-            // console.log("result[0]: ", result[0]);
-            // console.log("resulr[1]: ", result[1]);
+
+            //問題1-1出現問題的位置，暫時不處理
+            if(result > 0){
+              console.log("用戶存在")
+            }else{
+              console.log("用戶不存在")
+            }
+            console.log("select_user---result[0]: ", result[0]);
+            console.log("select_user---resulr[1]: ", result[1]);
             if (result[0].length == 0) {
+              console.log("用戶不存在")
               //if user haven't enrolled droneID
               // let drone: droneId = new Object();
               let drone:  { id: string }[] = []

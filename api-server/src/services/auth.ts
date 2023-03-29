@@ -10,7 +10,7 @@ export default {
    */
   async signup(req: Request, res: Response) {
     const { email, password, checkPassword }: SignupField = req.body;
-    console.log("--- [auth.ts] User signup ---\n 註冊資料req.body= ",req.body);
+    console.log("--- [auth.ts] User signup ---\n 用戶輸入的註冊資料req.body= ",req.body);
     // console.log(email, password, checkPassword);
 
     if (
@@ -84,6 +84,7 @@ export default {
 
   async login(req: Request, res: Response) {
     const { email, password }: LoginField = req.body;
+    console.log("--- [auth.ts] User login ---\n 用戶輸入的登入資料req.body= ",req.body);
 
     if (email.trim() === "" || password.trim() === "") {
       res.status(400).json({ msg: "Required field is empty" });
@@ -104,19 +105,28 @@ export default {
               reject(err);
               return;
             }
-            // console.log("promise: ", result);
-            let dataSTring = JSON.stringify(result);
-            let data = JSON.parse(dataSTring);
-            // console.log("data", data);
-            resolve(data[0]);
-            return;
+            if (result.length > 0) {// 大於0代表後端具有此email的用戶註冊資料
+              // console.log("promise: ", result);
+              let dataSTring = JSON.stringify(result);
+              let data = JSON.parse(dataSTring);
+              // console.log("data", data);
+              resolve(data[0]);
+              return;
+            }else{
+              resolve(null);
+              return;
+            }
           });
         });
       };
 
       const user: any = await select_user();
-      console.log("login user: ", user);
-      if (!(await compareEncryption(password, user.password))) {
+      console.log("login user的資料: ", user); 
+      if(!user){
+        console.log("此email用戶不存在")
+        res.status(401).json({ msg: "此email用戶不存在" }); //用401提醒用戶輸入錯誤
+        return;
+      }else if (!(await compareEncryption(password, user.password))) {
         res.status(401).json({ msg: "Invalid password " });
         return;
       }
