@@ -69,7 +69,7 @@ export default {
   //login時只要select email，但accountform需要多搜尋droneID
   //拆開來寫
   async getUserInfo(req: Request, res: Response) {
-    console.log("------user.ts------\n---getUserInfo()---");
+    console.log("------[user.ts]------\n---getUserInfo()---");
     try {
       let conn = await db();
       type droneId = {
@@ -209,6 +209,7 @@ export default {
 
   //New feature: Add new drones
   async addNewDrone(req: Request, res: Response) {
+    console.log("------[user.ts]------\n---enroll_droneId()---");
     const { droneId }: AddIDPayload = req.body;
     try {
       //preprocessor
@@ -221,31 +222,57 @@ export default {
       // console.log(insertData);
 
       //MySQL
-      const enroll_droneId = async function (droneid: string) {
-        let conn = await db();
+      let conn = await db();
+
+      const select_droneId = async function (droneid: string) {
         return new Promise(function (resolve, reject) {
-          let sql =
-            " INSERT INTO drones(id, user_id, drone_id) VALUES ( UUID_TO_BIN(UUID()), UUID_TO_BIN(?), ?);";
-          conn.query(
-            sql,
-            [res.locals.uuid, droneid],
-            function (err: any, result: any) {
-              if (err) {
-                reject(err);
-                console.log("[ERROR IN add_droneID]");
-                return;
-              }
-              let dataSTring = JSON.stringify(result);
-              let data = JSON.parse(dataSTring);
-              resolve(data[0]);
+          console.log(`資料庫中搜尋DroneID: ${droneid}是否存在: `)
+          let sqlsearch=
+            'SELECT  drone_id FROM drones WHERE drones.drone_id = ?;'
+          conn.query(sqlsearch, [droneid], function (err: any, result: any){
+            if (err) {
+              reject(err);
+              console.log("搜尋drone_id出現錯誤: ",err)
               return;
             }
-          );
+
+            if(result.length>0){ //如果有搜尋到id，表示此id已存在，不必再新增
+              console.log(`ID名: ${droneid} ,已存在`)
+              resolve(true);
+              return
+            }else{
+              console.log(`ID名: ${droneid} ,尚未註冊`)
+              resolve(false);
+              return
+            }
+          });
         });
       };
 
+      const enroll_droneId = async function (droneid: string) {
+        return new Promise(function (resolve, reject) {
+          let sql =
+            " INSERT INTO drones(id, user_id, drone_id) VALUES ( UUID_TO_BIN(UUID()), UUID_TO_BIN(?), ?);";
+          conn.query(sql, [res.locals.uuid, droneid], function (err: any, result: any) {            
+            if (err) {
+              reject(err);
+              console.log("[ERROR IN add_droneID]");
+              return;
+            }
+            let dataSTring = JSON.stringify(result);
+            let data = JSON.parse(dataSTring);
+            // console.log("-----data",data) //???
+            console.log("-----data[0]",data[0]) //???
+            resolve(data[0]);            
+            return;
+          })
+        })
+      }
+
       for (const index in droneId) {
-        await enroll_droneId(droneId[index]);
+        if (await select_droneId(droneId[index]) == false){ //如果此droneId不存在
+          await enroll_droneId(droneId[index]); //新增此droneId
+        }        
       }
       res.json({ msg: "Drone ID added!" });
     } catch (error) {

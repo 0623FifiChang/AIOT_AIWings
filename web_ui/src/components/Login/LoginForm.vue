@@ -104,6 +104,7 @@ export default {
         router.push({ path: '/drone' })
         
       } catch ({ response }) {
+        console.log("登入error")
         notification.error({
           message: response.data.msg
         })
