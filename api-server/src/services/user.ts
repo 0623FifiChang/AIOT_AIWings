@@ -22,7 +22,7 @@ export default {
               reject(err);
               return;
             }
-            console.log("getUserInfo: ", result);
+            console.log("--------user.ts--------\n------loginUser()------\ngetUserInfo: ", result);
             // handle object for userInfo
             type droneId = {
               [key: string]: any;
@@ -47,7 +47,6 @@ export default {
       const user: any = await select_user();
       // console.log("user.ts: ", user);
 
-      // console.log("user.ts: ", user);
       if (user) {
         res
           .cookie("access_token", res.locals.accessToken, {
@@ -70,6 +69,7 @@ export default {
   //login時只要select email，但accountform需要多搜尋droneID
   //拆開來寫
   async getUserInfo(req: Request, res: Response) {
+    console.log("------user.ts------\n---getUserInfo()---");
     try {
       let conn = await db();
       type droneId = {
@@ -85,57 +85,54 @@ export default {
             "SELECT email,drone_id, isAdmin FROM drones LEFT JOIN user ON user.id=drones.user_id WHERE user.id=UUID_TO_BIN(?);SELECT email FROM user  WHERE user.id=UUID_TO_BIN(?);";
           // let sql = " SELECT email FROM user  WHERE user.id=UUID_TO_BIN(?);";
 
-          conn.query(
-            sql,
-            [res.locals.uuid, res.locals.uuid],
-            function (err: any, result: any) {
-              if (err) {
-                reject(err);
-                return;
-              }
-              // console.log("result[0]: ", result[0]);
-              // console.log("resulr[1]: ", result[1]);
-              if (result[0].length == 0) {
-                //if user haven't enrolled droneID
-                // let drone: droneId = new Object();
-                let drone:  { id: string }[] = []
-                let userInfo = {
-                  email: result[1][0].email,
-                  droneId: drone,
-                  isAdmin: result[1][0].isAdmin
-                };
-                let dataSTring = JSON.stringify(userInfo);
-                let data = JSON.parse(dataSTring);
-                resolve(data);
-                return;
-              } else {
-                // handle object for userInfo
-                // user has enrolled droneID
-                let drone:  { id: string }[] = []
-
-                //把它key改成都是id
-                //應該要改成array然後append，變成[{ID:XXXX}, {ID:XXXXX}, {ID:XXXXX}]
-                for (const index in result[0]) {
-                  // drone[index] = result[0][index]['drone_id'];
-                  drone.push({id: result[0][index]['drone_id']})
-                }
-                let userInfo = {
-                  email: result[0][0].email,
-                  droneId: drone,
-                  isAdmin: result[0][0].isAdmin
-                };
-                // console.log("else: ", userInfo);
-                let dataSTring = JSON.stringify(userInfo);
-                let data = JSON.parse(dataSTring);
-                resolve(data);
-                return;
-              }
+          conn.query(sql,[res.locals.uuid, res.locals.uuid],function (err: any, result: any) {
+            if (err) {
+              reject(err);
+              return;
             }
-          );
+            // console.log("result[0]: ", result[0]);
+            // console.log("resulr[1]: ", result[1]);
+            if (result[0].length == 0) {
+              //if user haven't enrolled droneID
+              // let drone: droneId = new Object();
+              let drone:  { id: string }[] = []
+              let userInfo = {
+                email: result[1][0].email,
+                droneId: drone,
+                isAdmin: result[1][0].isAdmin
+              };
+              let dataSTring = JSON.stringify(userInfo);
+              let data = JSON.parse(dataSTring);
+              resolve(data);
+              return;
+            } else {
+              // handle object for userInfo
+              // user has enrolled droneID
+              let drone:  { id: string }[] = []
+
+              //把它key改成都是id
+              //應該要改成array然後append，變成[{ID:XXXX}, {ID:XXXXX}, {ID:XXXXX}]
+              for (const index in result[0]) {
+                // drone[index] = result[0][index]['drone_id'];
+                drone.push({id: result[0][index]['drone_id']})
+              }
+              let userInfo = {
+                email: result[0][0].email,
+                droneId: drone,
+                isAdmin: result[0][0].isAdmin
+              };
+              // console.log("else: ", userInfo);
+              let dataSTring = JSON.stringify(userInfo);
+              let data = JSON.parse(dataSTring);
+              console.log("user搜尋結果大於0時, getUserInfo()的promise的resolve回傳值: ",data)
+              resolve(data);
+              return;
+            }
+          });
         });
       };
       const user: any = await select_user();
-      console.log("user.ts: ", user);
+      console.log("-----user.ts------\n---getUserInfo()---\nuser = ", user);
 
       if (user) {
         res

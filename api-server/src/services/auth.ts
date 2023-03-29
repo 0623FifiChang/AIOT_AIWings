@@ -10,7 +10,7 @@ export default {
    */
   async signup(req: Request, res: Response) {
     const { email, password, checkPassword }: SignupField = req.body;
-    console.log(req.body);
+    console.log("--- [auth.ts] User signup ---\n 註冊資料req.body= ",req.body);
     // console.log(email, password, checkPassword);
 
     if (
@@ -36,23 +36,26 @@ export default {
     try {
       let conn = await db();
       const findEmail = "SELECT email FROM user WHERE email=?";
-      conn.query(findEmail, [email], function (err: any, results: any) {
+      conn.query(findEmail, [email], async function (err: any, results: any) {
         if (err) throw err;
         //if entered email is existed
-        if (results.length > 0) {
+        if (results.length > 0) {// 大於0代表後端已經有此email的註冊資料了
           res.status(400).json({ msg: "Email exist" });
+          console.log("此email已註冊")
           return;
+        }else{
+          const encryptPassword = await encryptPlaintext(password);//將使用者輸入的密碼進行加密
+          await insert_user(encryptPassword)
         }
       });
-      const encryptPassword = await encryptPlaintext(password);
 
-      const insert_user = async function () {
+      const insert_user = async function (encryptPassword_:string) {
         return new Promise(function (resolve, reject) {
           let insertNewUser =
             "INSERT INTO user(id, email, password) VALUES(UUID_TO_BIN(UUID()),?, ?);";
           conn.query(
             insertNewUser,
-            [email, encryptPassword],
+            [email, encryptPassword_],
             function (err: any, result: any) {
               if (err) {
                 reject(err);
@@ -64,7 +67,8 @@ export default {
           );
         });
       };
-      await insert_user();
+      // await insert_user();
+
       //   let insertNewUserDrones =
       //   "INSERT INTO drones(id, user_id, drone_id) VALUES(UUID_TO_BIN(UUID()),?, ?);";
       // conn.query(insertNewUserDrones, []);

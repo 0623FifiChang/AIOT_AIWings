@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 const SECRET = process.env.JWT_TOKEN_SECRET || "";
 
 const encryptPlaintext = async (plainText: string) => {
+  //  bcrypt讓使用者密碼加密
   return await bcrypt.hash(plainText, 10);
 };
 

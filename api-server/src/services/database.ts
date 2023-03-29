@@ -45,6 +45,24 @@ export async function connectToDatabase() {
     });
     
     logger.info("Connect to database successfully!");
+
+    /** 以下用來測試是否能成功在database【Mysql資料庫】創建表格，可以表示server有真的成功連上 */
+    /* 
+    var a = (`CREATE TABLE articles2 (
+      id     INT PRIMARY KEY AUTO_INCREMENT,
+      author VARCHAR(100) NOT NULL,
+      title  VARCHAR(100) NOT NULL,
+      body   TEXT         NOT NULL
+    )`);
+    
+    db.query(a, function (err: any, result: any) {
+      if (err) {
+        console.error("err: ",err);
+        return;
+      }
+      // 印出執行成功的result
+      console.error("result: ",result);
+    });*/
     return db;
   } catch (err) {
     logger.error(err);
