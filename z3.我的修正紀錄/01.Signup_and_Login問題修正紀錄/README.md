@@ -1,4 +1,4 @@
-# 我的修正紀錄
+# Signup_and_Login問題修改記錄
 
 ## 1. 註冊失敗導致後端server停止問題
 
@@ -55,7 +55,8 @@ async signup(req: Request, res: Response) {
 }
 ```
 
-![image](./%E6%88%AA%E5%9C%96/001.jpg)
+![](https://i.imgur.com/CQayLxT.jpg)
+
 
 ### 重新來過後遇到的問題
 
@@ -67,7 +68,7 @@ async signup(req: Request, res: Response) {
 - **只要一註冊必定後端掛掉**：重新來過後發現不知為何變成「只要一註冊必定後端掛掉」，但卻是能成功修改後端的
 (想起來之前好像遇過這個error，但後來莫名其妙我也沒幹嘛就自己好了)
 
-![image](./%E6%88%AA%E5%9C%96/017.png)
+![](https://i.imgur.com/dhC5Hq4.png)
 
 【發現莫名其妙好的原因是只要server重啟後登入過一次，它就不會有問題？？？】
 
@@ -86,8 +87,8 @@ async signup(req: Request, res: Response) {
 Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
 ```
 
-![image](./%E6%88%AA%E5%9C%96/018.png)<br>
-![image](./%E6%88%AA%E5%9C%96/019.png)
+![](https://i.imgur.com/nzu3ooJ.png)
+![](https://i.imgur.com/SyUTy3E.png)
 
 查了資料說是和res.send過多等原因造成
 
@@ -108,17 +109,17 @@ await insert_user();
 
 使用 **<font color="Red">if-else</font>** 邏輯避免
 
-![image](./%E6%88%AA%E5%9C%96/021.png)
-![image](./%E6%88%AA%E5%9C%96/020.png)
+![](https://i.imgur.com/UHkukQF.png)
+![](https://i.imgur.com/kQermEK.png)
 
 後端不會被迫停止了，email也沒有重複註冊
 
 ---
 一開始的寫法
 
-![image](./%E6%88%AA%E5%9C%96/004.jpg)
-![image](./%E6%88%AA%E5%9C%96/005.jpg)
-![image](./%E6%88%AA%E5%9C%96/006.jpg)
+![](https://i.imgur.com/Q4kddKm.jpg)
+![](https://i.imgur.com/xTaouNL.jpg)
+![](https://i.imgur.com/ywhnQqJ.jpg)
 
 ---
 
@@ -126,9 +127,9 @@ await insert_user();
 
 - **登入時，如果輸入不存在的用戶email，前端會卡住**
 
-![image](./%E6%88%AA%E5%9C%96/022.png)
+![](https://i.imgur.com/2NqY5rp.png)
 
-![image](./%E6%88%AA%E5%9C%96/023.png)
+![](https://i.imgur.com/dyIsrCa.png)
 
 --登入程式流程--
 
@@ -175,9 +176,9 @@ async login(req: Request, res: Response) {
 }
 ```
 
-![image](./%E6%88%AA%E5%9C%96/012.png)
+![](https://i.imgur.com/4OBUm3l.png)
 如果登入email不存在，則會回傳空直
-![image](./%E6%88%AA%E5%9C%96/013.png)
+![](https://i.imgur.com/EARv2pU.png)
 
 研究後發現。當select_user()回傳結果後，若為空值，下面的仍會繼續執行，所以後面抓不到值就產生err，進到
 catch(error){
@@ -190,13 +191,13 @@ catch(error){
 
 增加email用戶存不存在的條件判斷
 
-![image](./%E6%88%AA%E5%9C%96/025.png)
+![](https://i.imgur.com/Ank6FI0.png)
 
 >res.status(401) ：【4xx 代表的是客戶端的錯誤】
 res.status(500) ： Internal Server Error，會停在畫面？【5xx 代表的是伺服器端的錯誤】
 
 修改結果：前端不會卡住了(login按鈕不再繞圈圈)
-![image](./%E6%88%AA%E5%9C%96/024.png)
+![](https://i.imgur.com/VhzApUW.png)
 
 ---
 
@@ -205,10 +206,11 @@ res.status(500) ： Internal Server Error，會停在畫面？【5xx 代表的�
 - **登入時，如果輸入不存在的用戶email，前端會卡住(http錯誤碼500)，如果重整，後端直接被迫關閉**
 
 輸入不存在的用戶email >> 前端會卡住【後端報錯】
-![image](./%E6%88%AA%E5%9C%96/010.png)
-![image](./%E6%88%AA%E5%9C%96/011.png)
+![](https://i.imgur.com/I1tbUyf.png)
+
+![](https://i.imgur.com/JNX3orb.png)
 這時前端重整，後端直接被迫關閉
-![image](./%E6%88%AA%E5%9C%96/009.jpg)
+![](https://i.imgur.com/xz3vtVP.jpg)
 
 ### 解決方法
 
