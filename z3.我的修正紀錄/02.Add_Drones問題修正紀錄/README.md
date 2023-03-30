@@ -1,4 +1,5 @@
-# 我的修正紀錄
+###### tags: `aiwings` `vue`
+# Add_Drones問題修正紀錄
 
 ## 3. Add Drone的時候，即使是重複ID一樣會增加，導致重複ID出現
 
@@ -6,8 +7,8 @@
 
 且因為原本submit後，已經提交的ID仍會保留在介面中，如果沒有把原本已提交的ID刪掉，新增新的ID後直接連已提交的ID一起submit，就會把原本的ID再新增一次
 
-![image](./%E6%88%AA%E5%9C%96/007.jpg)
-![image](./%E6%88%AA%E5%9C%96/008.jpg)
+![](https://i.imgur.com/AFucMqi.jpg)
+![](https://i.imgur.com/J854ioW.jpg)
 錯誤：資料庫會出現兩個1111【沒截圖到】
 
 --程式流程--
@@ -50,21 +51,21 @@ router.post("/user/drones", verifyTokens, user.addNewDrone);
 
 → 再資料庫新增droneId【**就是此處有問題**】
 
-![image](./%E6%88%AA%E5%9C%96/020.png)
+![](https://i.imgur.com/z5lPhU7.png)
 
 ### **<font color="Red">問題3：解決方法</font>**
 
 1. **先判斷droneId是否已存在**：新增 select_droneId( droneId ) 函式
 2. 優化 — **不重複開啟db**：將 let conn = await db(); 拉到外側
 
-![image](./%E6%88%AA%E5%9C%96/021.png)
-![image](./%E6%88%AA%E5%9C%96/022.png)
-![image](./%E6%88%AA%E5%9C%96/023.png)
+![](https://i.imgur.com/ni3yzD3.png)
+![](https://i.imgur.com/KUrS8xy.png)
+![](https://i.imgur.com/Oz8nwzD.png)
 
 結果
 
 ！**不會重複新增droneId了**！
 
-![image](./%E6%88%AA%E5%9C%96/024.png)
-![image](./%E6%88%AA%E5%9C%96/025.png)
+![](https://i.imgur.com/uNjE4uO.png)
+![](https://i.imgur.com/lXgjQRF.png)
 
