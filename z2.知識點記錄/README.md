@@ -105,3 +105,13 @@ const io = new Server(server);
 1. Vuex 的狀態存儲是響應式的。當 Vue 組件從 store 中讀取狀態的時候，若 store 中的狀態發生變化，那麼相應的組件也會相應地得到高效更新。 
 
 2. 你**不能直接改變 store 中的狀態。** 改變 store 中的狀態的唯一途徑就是顯式地**提交 (commit) mutation**。這樣使得我們可以方便地跟踪每一個狀態的變化，從而讓我們能夠實現一些工具幫助我們更好地了解我們的應用。
+
+## .focus()
+
+.focus() 自動把游標移到此元件上，不須使用者再次操作
+
+```js
+const test = document.getElementById("test");
+console.log("test輸入框元素: ",test)
+test.focus() //focus()：自動把游標移到此元件上，不須使用者再次操作
+```

@@ -22,7 +22,7 @@ export default {
               reject(err);
               return;
             }
-            console.log("--------user.ts--------\n------loginUser()------\ngetUserInfo: ", result);
+            console.log("------- [user.ts] -------\n------ loginUser() ------\nselect_user()【getUserInfo】: ", result);
             // handle object for userInfo
             type droneId = {
               [key: string]: any;
@@ -69,7 +69,7 @@ export default {
   //login時只要select email，但accountform需要多搜尋droneID
   //拆開來寫
   async getUserInfo(req: Request, res: Response) {
-    console.log("------[user.ts]------\n---getUserInfo()---");
+    console.log("------ [user.ts] ------\n---getUserInfo()---");
     try {
       let conn = await db();
       type droneId = {
@@ -80,7 +80,7 @@ export default {
       //Promise
       const select_user = async function () {
         return new Promise(function (resolve, reject) {
-          console.log("------- uuid ------\nres.locals.uuid = ", res.locals.uuid);
+          console.log("------- uuid ------res.locals.uuid = ", res.locals.uuid);
           //fixed me
           let sql =
             "SELECT email,drone_id, isAdmin FROM drones LEFT JOIN user ON user.id=drones.user_id WHERE user.id=UUID_TO_BIN(?);SELECT email FROM user  WHERE user.id=UUID_TO_BIN(?);";
@@ -93,13 +93,13 @@ export default {
             }
 
             //問題1-1出現問題的位置，暫時不處理
-            if(result > 0){
-              console.log("用戶存在")
+            if(result.length > 0){
+              // console.log("用戶存在")
             }else{
-              console.log("用戶不存在")
+              // console.log("用戶不存在")
             }
-            console.log("select_user---result[0]: ", result[0]);
-            console.log("select_user---resulr[1]: ", result[1]);
+            // console.log("select_user---result[0]: ", result[0]);
+            // console.log("select_user---resulr[1]: ", result[1]);
             if (result[0].length == 0) {
               console.log("用戶不存在")
               //if user haven't enrolled droneID
@@ -141,7 +141,7 @@ export default {
         });
       };
       const user: any = await select_user();
-      console.log("-----user.ts------\n---getUserInfo()---\nuser = ", user);
+      // console.log("-----user.ts------\n---getUserInfo()---\nuser = ", user);
 
       if (user) {
         res
@@ -169,6 +169,7 @@ export default {
 
   //FIXED ME
   async editUserDroneId(req: Request, res: Response) {
+    console.log("------ [user.ts] ------\n---editUserDroneId()---");
     const { droneId }: EditIDPayload = req.body;
     try {
       //MYSQL
@@ -177,22 +178,26 @@ export default {
         return new Promise(function (resolve, reject) {
           //FIXME
           //要找到原來的id 插入第三個變數
-          console.log(req.body.droneId);
-          console.log(req.body.originDroneId);
+          console.log("更改後的droneId: ",req.body.droneId);
+          console.log("原本的droneId: ",req.body.originDroneId);
+          console.log("res.locals.uuid: ",res.locals.uuid)
+          // let sql =
+          //   " UPDATE drones SET drones.drone_id = ? WHERE (drones.user_id = (SELECT id FROM user WHERE id = ?)) AND (drones.drone_id= ?);";
           let sql =
-            " UPDATE drones SET drones.drone_id = ? WHERE (drones.user_id = (SELECT id FROM user WHERE id = ?)) AND (drones.drone_id= ?);";
-          conn.query(
-            sql,
-            [droneId, res.locals.uuid, req.body.originDroneId],
-            function (err: any, result: any) {
+              "UPDATE drones  SET drones.drone_id = ?  WHERE drones.user_id = UUID_TO_BIN(?) AND (drones.drone_id= ?);"
+            //要把 uuid 轉回 bin 才能在 mysql 中搜尋到結果
+          conn.query(sql,  [droneId, res.locals.uuid, req.body.originDroneId], function (err: any, result: any) {
               if (err) {
                 reject(err);
                 console.log("[ERROR IN update_droneID]");
                 return;
               }
+              // console.log("update_droneID的result= ",result)
               let dataSTring = JSON.stringify(result);
               let data = JSON.parse(dataSTring);
+              // console.log("update_droneID的resolve資料???:\n",data[0])
               resolve(data[0]);
+              // resolve(true)
               return;
             }
           );
