@@ -12,17 +12,17 @@
     />
     <!-- <input ref="droneIdEl" type="text" name="" id="test" :value= "TEST"><p>{{TEST}}</p>
     <p>{{test}}</p> -->
-    <div v-for="drone in droneId" :key="drone.id" class="droneId__wrapper">
+    <div v-for="(drone,index) in droneId" :key="drone.id" class="droneId__wrapper">
       <!-- {{ drone.id }} -->
       <a-input
         :ref="el => {
-          droneIdEl[drone.id]=el;
+          droneIdEl[index]=el;
         }"
         v-model:value= "drone.id"
         
         size="large"
         addon-before="Drone ID"
-        :disabled="!isEditing"
+        :disabled="!isEditing[index].value"
         :maxlength="20"
         type="text"
       />
@@ -32,10 +32,9 @@
         type="primary"
         html-type="button"
         :is-loading="isSubmitting"
-        :button-name="buttonState"
-        :click-handler="()=>handleDroneIdEdit(drone.id)"
+        :button-name="buttonState[index].value"
+        :click-handler="()=>handleDroneIdEdit(index)"
       />
-      <!-- 將drone.id作為參數放入 -->
     </div>
   </div>
 </template>
@@ -43,7 +42,7 @@
 <script>
 import { reactive, ref } from '@vue/reactivity'
 import { useStore } from 'vuex'
-import { computed, nextTick } from '@vue/runtime-core'
+import { computed, nextTick, watch } from '@vue/runtime-core'
 import socket from '../../lib/websocket'
 import user from '../../services/user'
 import Button from '../UI/Button.vue'
@@ -58,29 +57,41 @@ export default {
     const droneIdEl = [] // 改成創建一個陣列，用來放回圈的各個輸入框的ref
     const store = useStore()
     const userInfo = computed(() => store.getters.getUserInfo)
-    const buttonState = computed(() => (isEditing.value ? 'Save' : 'Rename'))
-    const isEditing = ref(false)
+    // const buttonState = computed(() => (isEditing.value ? 'Save' : 'Rename'))
+    // const isEditing = ref(false)
+    const buttonState = []
+    const isEditing = []
+     
     const isSubmitting = ref(false)
     const droneId = reactive(userInfo.value.droneId)
     // console.log('Account form: ',   droneId instanceof Array)
 
-    console.log("store全域容器中拾取的:\ndroneId: ",droneId)
+    // console.log("store全域容器中拾取的:\ndroneId: ",droneId)
 
-    const handleDroneIdEdit = async (id) => {
+    for(var i=0;i<droneId.length;i++){
+      isEditing[i] = ref(false)
+      buttonState[i] = ref('Rename')
+    }
+
+    const changeButtonWord = (index) => {
+      isEditing[index].value = !isEditing[index].value
+      buttonState[index].value = isEditing[index].value ? 'Save' : 'Rename'
+    }
+
+    const handleDroneIdEdit = async (index) => {
       console.log("---handleDroneIdEdit 函式---") 
-      // console.log("droneIdEl輸入框元素: ",droneIdEl) 
-      // console.log("droneIdEl輸入框元素: ",droneIdEl[1]) 
-      // console.log("id: ",id)
-      
-      if (!isEditing.value) {
-        isEditing.value = true
+      // console.log(">>buttonState: ",buttonState.value,"\nisEditing.value: ",isEditing.value,"\nisSubmitting.value: ",isSubmitting.value)
+
+      if (!isEditing[index].value) {
+        // isEditing[index].value = true
+        changeButtonWord(index)
         await nextTick(()=>{
           console.log("nextTick執行，還不知道這個要幹嘛")
         })//nextTick()：數據更新後，DOM 非同步更新也完成後，才執行
-        droneIdEl[id].focus() //.focus() 自動把游標移到此元件上，不須使用者再次操作
+        droneIdEl[index].focus() //.focus() 自動把游標移到此元件上，不須使用者再次操作
         return
       }
-      droneIdEl[id].focus()
+      droneIdEl[index].focus()
 
       console.log("使用者前端介面顯示的全部droneId: ",droneId)  //前端的droneId Array
 
@@ -121,13 +132,14 @@ export default {
       //   notification.success({ message: data.msg })
       // }
 
-      isEditing.value = false
+      // isEditing[index].value = false
+      changeButtonWord(index)
       isSubmitting.value = false
     }
 
-    const handleDroneIdEditCancel = () => {
-      isEditing.value = false
-      droneId.value = userInfo.value.droneId
+    const handleDroneIdEditCancel = (index) => {
+      // isEditing[index].value = false
+      // droneId.value = userInfo.value.droneId
     }
 
     return {
@@ -138,7 +150,9 @@ export default {
       isSubmitting,
       userInfo,
       handleDroneIdEdit,
-      handleDroneIdEditCancel
+      handleDroneIdEditCancel,
+
+      changeButtonWord
     }
   }
 }

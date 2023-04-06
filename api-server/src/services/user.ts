@@ -214,7 +214,7 @@ export default {
 
   //New feature: Add new drones
   async addNewDrone(req: Request, res: Response) {
-    console.log("------[user.ts]------\n---enroll_droneId()---");
+    console.log("------[user.ts]------\n---enroll_droneId()---",);
     const { droneId }: AddIDPayload = req.body;
     try {
       //preprocessor
@@ -233,8 +233,8 @@ export default {
         return new Promise(function (resolve, reject) {
           console.log(`資料庫中搜尋DroneID: ${droneid}是否存在: `)
           let sqlsearch=
-            'SELECT  drone_id FROM drones WHERE drones.drone_id = ?;'
-          conn.query(sqlsearch, [droneid], function (err: any, result: any){
+            'SELECT  drone_id FROM drones WHERE drones.user_id = UUID_TO_BIN(?) AND drones.drone_id = ?;'
+          conn.query(sqlsearch, [res.locals.uuid, droneid], function (err: any, result: any){
             if (err) {
               reject(err);
               console.log("搜尋drone_id出現錯誤: ",err)
