@@ -21,4 +21,9 @@ export default {
   async enrollDroneId(droneId) {
     return await axios.post('/user/drones', droneId)
   },
+
+  //delete ID
+  async deleteDroneId(droneId) {
+    return await axios.post('/user/delete_drones', droneId)
+  },
 }

@@ -214,7 +214,7 @@ export default {
 
   //New feature: Add new drones
   async addNewDrone(req: Request, res: Response) {
-    console.log("------[user.ts]------\n---enroll_droneId()---",);
+    console.log("------[user.ts]------\n---addNewDrone()---",);
     const { droneId }: AddIDPayload = req.body;
     try {
       //preprocessor
@@ -285,4 +285,36 @@ export default {
       res.status(500).json({ msg: "Internal server error" });
     }
   },
+
+  //New feature: Delete drones
+  async deleteDrone(req: Request, res: Response) {
+    console.log("------[user.ts]------\n---deleteDrone()---",);
+    const { droneId }: EditIDPayload = req.body;
+    try {
+      //MYSQL
+      const delete_droneID = async function () {
+        let conn = await db();
+        return new Promise(function (resolve, reject) {
+          //刪除指定帳號下的指定id
+          let sql=
+              'DELETE FROM drones WHERE drones.user_id = UUID_TO_BIN(?) AND drones.drone_id = ?;'
+          conn.query(sql, [res.locals.uuid, droneId], function (err: any, result: any) {              
+            if (err) {
+              reject(err);
+              console.log("[ERROR IN delete_droneID]");
+              return;
+            }
+            // console.log(">>>result",result)
+            resolve(`Drone ID "${droneId}" is delete`);  //沒想好回傳甚麼......
+            return
+          })
+        });
+      }
+      const dele_msg = await delete_droneID();
+      res.json({ msg: dele_msg });
+    }catch(error){
+      logger.error(error);
+      res.status(500).json({ msg: "Internal server error" });
+    }
+  }
 };

@@ -2,6 +2,7 @@
   <div class="content__wrapper">
     <h1>Account Setting</h1>
     <a-divider />
+    <Enroll />
     <a-input
       v-model:value="userInfo.email"
       class="content__input"
@@ -35,6 +36,7 @@
         :button-name="buttonState[index].value"
         :click-handler="()=>handleDroneIdEdit(index)"
       />
+      <button type="button" value="刪除" @click="()=>deleteDrone(index)" >刪除</button>
     </div>
   </div>
 </template>
@@ -47,10 +49,14 @@ import socket from '../../lib/websocket'
 import user from '../../services/user'
 import Button from '../UI/Button.vue'
 import { notification } from 'ant-design-vue'
+
+import Enroll from '../Enroll_drones/Enroll.vue'
+
 export default {
   name: 'AccountForm',
   components: {
-    Button
+    Button,
+    Enroll
   },
   setup() {
     // const droneIdEl = ref(null) //創建一個ref物件，綁定到input上
@@ -100,17 +106,12 @@ export default {
       user.getUserInfo()
         .then(async (res) => {
           const AllBackendID = res.data.droneId //使用者目前後端的droneId資料
-          for(var i=0 ; i<AllBackendID.length; i++){
-            if(AllBackendID[i].id != droneId[i].id){
-              console.log(`第${i+1}行不同~~~`)
-              // 修改後端、store state全域變數更改
-              const { data } = await user.editUserDroneId({ //別忘了await
-                droneId: droneId[i].id,
-                originDroneId: AllBackendID[i].id
-              })
-              notification.success({ message: data.msg })
-            }
-          }
+          // 修改後端、store state全域變數更改
+          const { data } = await user.editUserDroneId({ //別忘了await
+            droneId: droneId[index].id,
+            originDroneId: AllBackendID[index].id
+          })
+          notification.success({ message: data.msg })
         })
         .catch((err)=>{
           console.log("在AccountForm.vue的user.getUserInfo()報錯: ",err)
@@ -142,6 +143,14 @@ export default {
       // droneId.value = userInfo.value.droneId
     }
 
+    const deleteDrone = async(index)=>{
+      console.log("刪除ID: %s",droneId[index].id)
+      const { data } = await user.deleteDroneId({
+      droneId: droneId[index].id
+      })
+      notification.success({ message: data.msg })
+    }
+
     return {
       buttonState,
       droneId,
@@ -152,7 +161,8 @@ export default {
       handleDroneIdEdit,
       handleDroneIdEditCancel,
 
-      changeButtonWord
+      changeButtonWord,
+      deleteDrone
     }
   }
 }
