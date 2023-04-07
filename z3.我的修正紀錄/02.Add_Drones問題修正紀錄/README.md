@@ -69,3 +69,8 @@ router.post("/user/drones", verifyTokens, user.addNewDrone);
 ![](https://i.imgur.com/uNjE4uO.png)
 ![](https://i.imgur.com/lXgjQRF.png)
 
+更新：
+select_droneID的MySQL語法應該連同user_id一起考慮
+```javascript=
+'SELECT  drone_id FROM drones WHERE drones.user_id = UUID_TO_BIN(?) AND drones.drone_id = ?;'
+```
