@@ -39,6 +39,9 @@
       <button type="button" value="刪除" @click="()=>deleteDrone(index)" >刪除</button>
     </div>
   </div>
+
+  
+
 </template>
 
 <script>
@@ -62,18 +65,22 @@ export default {
     // const droneIdEl = ref(null) //創建一個ref物件，綁定到input上
     const droneIdEl = [] // 改成創建一個陣列，用來放回圈的各個輸入框的ref
     const store = useStore()
-    const userInfo = computed(() => store.getters.getUserInfo)
+    const userInfo = computed(() => {
+      console.log("userInfo = computed(() = >{})觸發\n\nserInfo = ",store.getters.getUserInfo)
+      return store.getters.getUserInfo
+    })
+
     // const buttonState = computed(() => (isEditing.value ? 'Save' : 'Rename'))
     // const isEditing = ref(false)
     const buttonState = []
     const isEditing = []
      
     const isSubmitting = ref(false)
-    const droneId = reactive(userInfo.value.droneId)
+    const droneId = reactive(userInfo.value.droneId) //react采取单向绑定，網頁的修改不影響後端的userInfo.value.droneId
     // console.log('Account form: ',   droneId instanceof Array)
 
     // console.log("store全域容器中拾取的:\ndroneId: ",droneId)
-
+    
     for(var i=0;i<droneId.length;i++){
       isEditing[i] = ref(false)
       buttonState[i] = ref('Rename')
@@ -88,6 +95,7 @@ export default {
       console.log("---handleDroneIdEdit 函式---") 
       // console.log(">>buttonState: ",buttonState.value,"\nisEditing.value: ",isEditing.value,"\nisSubmitting.value: ",isSubmitting.value)
 
+      /****** 按下ReName按鈕時 *******/
       if (!isEditing[index].value) {
         // isEditing[index].value = true
         changeButtonWord(index)
@@ -97,25 +105,35 @@ export default {
         droneIdEl[index].focus() //.focus() 自動把游標移到此元件上，不須使用者再次操作
         return
       }
-      droneIdEl[index].focus()
 
+      /****** 按下Save 按鈕時 ******/
+      droneIdEl[index].focus()
       console.log("使用者前端介面顯示的全部droneId: ",droneId)  //前端的droneId Array
 
       // Promise　【user.getUserInfo()回傳的是 Promise】
       // 用 user.getUserInfo() 直接到後端取得目前後端的使用者droneId資料
-      user.getUserInfo()
-        .then(async (res) => {
-          const AllBackendID = res.data.droneId //使用者目前後端的droneId資料
-          // 修改後端、store state全域變數更改
-          const { data } = await user.editUserDroneId({ //別忘了await
-            droneId: droneId[index].id,
-            originDroneId: AllBackendID[index].id
-          })
-          notification.success({ message: data.msg })
+      const backendUserData = (await user.getUserInfo()).data // 取出Promise資料方法：要用await
+      const AllBackendID = backendUserData.droneId //使用者目前後端的droneId資料
+
+      if (droneId[index].id == AllBackendID[index].id){
+        /* 如果id沒有修改，值接save */
+        changeButtonWord(index)
+        isSubmitting.value = false
+      }else{
+        /* 如果id有修改，修改後端資料庫 */
+        // 修改後端database、store state全域變數更改
+        const { data } = await user.editUserDroneId({ //別忘了await
+          droneId: droneId[index].id,
+          originDroneId: AllBackendID[index].id
         })
-        .catch((err)=>{
-          console.log("在AccountForm.vue的user.getUserInfo()報錯: ",err)
-        })
+        // console.log("DATA = ",data)
+        notification.success({ message: data.msg }) //msg可能是"Drone ID updated" 或 "This Drone ID already exists!"
+        if(data.msg == "Drone ID updated"){ //如果成功更新
+          changeButtonWord(index)
+          isSubmitting.value = false
+        }
+      }
+    
 
 
       // isSubmitting.value = true
@@ -134,8 +152,6 @@ export default {
       // }
 
       // isEditing[index].value = false
-      changeButtonWord(index)
-      isSubmitting.value = false
     }
 
     const handleDroneIdEditCancel = (index) => {
@@ -146,11 +162,23 @@ export default {
     const deleteDrone = async(index)=>{
       console.log("刪除ID: %s",droneId[index].id)
       const { data } = await user.deleteDroneId({
-      droneId: droneId[index].id
+        droneId: droneId[index].id
       })
+      // 【更新store】
+      store.commit('deleteDroneID', droneId[index])
+
       notification.success({ message: data.msg })
     }
 
+    //watch監聽對象：droneId
+    watch(droneId, (newValue)=>{    //監聽reactive定義的響應式數據時，oldvalue無法正確獲取。強制開啟了深度監聽（deep配置失效）。所以這裡只監聽newValue，舊值長度用isEditing原本的長度來替代
+      console.log("newValue.length = ",newValue.length)
+      for(var i=isEditing.length; i<newValue.length; i++){
+        isEditing[i] = ref(false)
+        buttonState[i] = ref('Rename')
+      }
+    })
+      
     return {
       buttonState,
       droneId,
@@ -162,7 +190,8 @@ export default {
       handleDroneIdEditCancel,
 
       changeButtonWord,
-      deleteDrone
+      deleteDrone,
+
     }
   }
 }

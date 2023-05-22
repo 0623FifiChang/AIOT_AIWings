@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { connectToDatabase as db } from "../services/database";
+import { select_droneId } from "../services/database";
 import { logger } from "../server";
 import { AddIDPayload, EditIDPayload } from "../types";
 export default {
@@ -173,8 +174,17 @@ export default {
     const { droneId }: EditIDPayload = req.body;
     try {
       //MYSQL
+      let conn = await db();
+
+      /*確認更改的DroneId存不存在*/
+      if(await select_droneId(conn, res.locals.uuid, req.body.droneId)){
+        console.log("更改的DroneId已存在")
+        res.json({ msg: "This Drone ID already exists!" }); //如果已存在，回傳此訊息並結束
+        return
+      }
+
+      /*更改droneId*/
       const update_droneID = async function () {
-        let conn = await db();
         return new Promise(function (resolve, reject) {
           //FIXME
           //要找到原來的id 插入第三個變數
@@ -195,7 +205,7 @@ export default {
               // console.log("update_droneID的result= ",result)
               let dataSTring = JSON.stringify(result);
               let data = JSON.parse(dataSTring);
-              // console.log("update_droneID的resolve資料???:\n",data[0])
+              console.log("update_droneID的resolve資料???:\n",data[0])
               resolve(data[0]);
               // resolve(true)
               return;
@@ -229,31 +239,6 @@ export default {
       //MySQL
       let conn = await db();
 
-      const select_droneId = async function (droneid: string) {
-        return new Promise(function (resolve, reject) {
-          console.log(`資料庫中搜尋DroneID: ${droneid}是否存在: `)
-          let sqlsearch=
-            'SELECT  drone_id FROM drones WHERE drones.user_id = UUID_TO_BIN(?) AND drones.drone_id = ?;'
-          conn.query(sqlsearch, [res.locals.uuid, droneid], function (err: any, result: any){
-            if (err) {
-              reject(err);
-              console.log("搜尋drone_id出現錯誤: ",err)
-              return;
-            }
-
-            if(result.length>0){ //如果有搜尋到id，表示此id已存在，不必再新增
-              console.log(`ID名: ${droneid} ,已存在`)
-              resolve(true);
-              return
-            }else{
-              console.log(`ID名: ${droneid} ,尚未註冊`)
-              resolve(false);
-              return
-            }
-          });
-        });
-      };
-
       const enroll_droneId = async function (droneid: string) {
         return new Promise(function (resolve, reject) {
           let sql =
@@ -275,7 +260,7 @@ export default {
       }
 
       for (const index in droneId) {
-        if (await select_droneId(droneId[index]) == false){ //如果此droneId不存在
+        if (await select_droneId(conn, res.locals.uuid, droneId[index]) == false){ //如果此droneId不存在
           await enroll_droneId(droneId[index]); //新增此droneId
         }        
       }

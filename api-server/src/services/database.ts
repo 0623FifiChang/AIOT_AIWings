@@ -70,8 +70,32 @@ export async function connectToDatabase() {
   }
 }
 
+/* 搜尋 "資料庫" 中 "指定用戶" 的 "droneId" */ 
+/* 成功回傳true，失敗回傳false */
+export async function select_droneId(conn:any, uuid:any, droneid:string) {
+  return new Promise(function (resolve, reject) {
+    console.log(`在資料庫中搜尋DroneID: 「${droneid}」是否存在: `)
+    let sqlsearch=
+      'SELECT  drone_id FROM drones WHERE drones.user_id = UUID_TO_BIN(?) AND drones.drone_id = ?;'
+    conn.query(sqlsearch, [uuid, droneid], function (err: any, result: any){
+      if (err) {
+        reject(err);
+        console.log("搜尋drone_id出現錯誤: ",err)
+        return;
+      }
 
-
+      if(result.length>0){ //如果有搜尋到id，表示此id已存在，不必再新增
+        console.log(`ID名: ${droneid} ,已存在`)
+        resolve(true);
+        return
+      }else{
+        console.log(`ID名: ${droneid} ,尚未註冊`)
+        resolve(false);
+        return
+      }
+    });
+  });
+};
 
 
 
