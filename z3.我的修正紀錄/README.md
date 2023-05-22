@@ -111,3 +111,11 @@ user.ts中的 addNewDrone()
   
   `AAccountFrom.vue 的 AhandleDroneIdEdit()`
   ![](https://hackmd.io/_uploads/S1KG9krS2.png)
+
+    
+    
+    
+    
+
+
+    
